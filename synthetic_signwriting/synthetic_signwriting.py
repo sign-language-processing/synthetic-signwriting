@@ -11,7 +11,7 @@ from synthetic_signwriting.synthetic_pose_helper import randomize_hand_pose, cre
 class SyntheticSignWriting:
 
     def __init__(self):
-        with open('data/pose.bin', 'rb') as file:
+        with open('data/base_pose.pose', 'rb') as file:
             data_buffer = file.read()
         pose = Pose.read(data_buffer)
         middle = int(len(pose.body.data) / 2)
