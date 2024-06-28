@@ -1,0 +1,4 @@
+include README.md
+recursive-include synthetic_signwriting/data *
+recursive-include synthetic_signwriting/faces *
+recursive-include synthetic_signwriting/hands *
