@@ -4,9 +4,11 @@ from pathlib import Path
 import numpy as np
 from pose_format import Pose
 
-from synthetic_signwriting.hands.hands import load_hands, proportionate_hand, randomize_hand_pose, hands_normalization, normalize_hand
+from synthetic_signwriting.hands.hands import load_hands, proportionate_hand, randomize_hand_pose, hands_normalization, \
+    normalize_hand
 from synthetic_signwriting.faces.faces import proportionate_face, load_faces, face_normalization, normalize_face
 from synthetic_signwriting.synthetic_pose_helper import create_base_frame, pose_transition
+
 
 class SyntheticSignWriting:
 
@@ -24,7 +26,7 @@ class SyntheticSignWriting:
         self.pose = pose
         # initialize static position based on the base pose - will use as a base for the keyframes
         self.static_position = [pose.body.data[middle_frame + 2 * i][0].copy() for i in range(4)]
-        self.start_position = pose.body.data[0][0].copy()     # the first frame
+        self.start_position = pose.body.data[0][0].copy()  # the first frame
         self.sequence = []
 
         # initialize the hands and faces locations
@@ -66,9 +68,9 @@ class SyntheticSignWriting:
 
     def render_pose(self, frame_suspension=100):
         # initialize the pose
-        _, _, points, dimensions = self.pose.body.data.shape    # get the number of points and dimensions
+        _, _, points, dimensions = self.pose.body.data.shape  # get the number of points and dimensions
         self.pose.body.data = None
-        zero_frame = np.zeros((frame_suspension - 2, 1, points, dimensions))    # the -2 is because first and last frame
+        zero_frame = np.zeros((frame_suspension - 2, 1, points, dimensions))  # the -2 is because first and last frame
         hands_normalizer = hands_normalization()
         face_normalizer = face_normalization()
 
@@ -84,7 +86,8 @@ class SyntheticSignWriting:
 
             left_hand_base = pose_frame[self.feature_range["left_hand"]]  # get the left hand
             left_hand = normalize_hand(hands_normalizer, left_hand)
-            left_hand = proportionate_hand(left_hand, left_hand_base, reflection=True)  # reflection because it's left hand
+            left_hand = proportionate_hand(left_hand, left_hand_base,
+                                           reflection=True)  # reflection because it's left hand
             pose_frame[self.feature_range["left_hand"]] = left_hand
 
             # face
@@ -103,7 +106,8 @@ class SyntheticSignWriting:
     def _smooth(self, frame_suspension):
         suspension_on_pose = 30  # adding frames of suspension after each keyframe to emphasize the target pose
         for i in range(0, len(self.pose.body.data) - 1, frame_suspension - 1):
-            self.pose.body.data[i: frame_suspension] = pose_transition(self.pose.body.data[i],
-                                                                       self.pose.body.data[i + frame_suspension - 1],
-                                                                       frame_suspension - suspension_on_pose,
-                                                                       suspension_on_pose)
+            self.pose.body.data[i: frame_suspension + i] = pose_transition(self.pose.body.data[i],
+                                                                           self.pose.body.data[
+                                                                               i + frame_suspension - 1],
+                                                                           frame_suspension - suspension_on_pose,
+                                                                           suspension_on_pose)

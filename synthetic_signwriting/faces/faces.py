@@ -8,16 +8,8 @@ import numpy.ma as ma
 from scipy.spatial.transform import Rotation
 
 
-def get_face_rotation(pose: np.ndarray):
-    point1 = pose[4]  # Nose
-    point2 = pose[6]  # Middle eyebrows
-    vec = point2 - point1
-
-    return 90 + math.degrees(math.atan2(vec[1], vec[0]))
-
-
-def rotate_face(pose: np.ndarray, angle: float):
-    rotation = Rotation.from_euler('z', angle, degrees=True)
+def rotate_face(pose: np.ndarray, angle: float, axis='z'):
+    rotation = Rotation.from_euler(axis, angle, degrees=True)
     return np.dot(pose, rotation.as_matrix())
 
 
@@ -25,17 +17,6 @@ def reposition_face(pose: np.ndarray, suitable_face: np.ndarray):
     pose_center_point = pose[4]  # Nose
     suitable_face_center_point = suitable_face[4]  # Nose of suitable hand
     pose += suitable_face_center_point - pose_center_point  # move to Nose of the suitable hand
-    return pose
-
-
-def normalized_face(pose: np.ndarray):
-    assert pose.shape == (468, 3)
-    assert not np.all(pose == 0)
-
-    # Then rotate on the X-Y plane such that the BASE-M_CMC is on the Y axis
-    angle = get_face_rotation(pose)
-    pose = rotate_face(pose, angle)
-
     return pose
 
 
@@ -51,6 +32,7 @@ def proportionate_face(pose: np.ndarray, suitable_face: np.ndarray):
 
 def normalize_face(normalizer: PoseNormalizer, pose: np.ndarray):
     pose = normalizer(ma.masked_array([[pose]]))[0][0]
+    pose = rotate_face(pose, -50, 'x')  # Rotate on the x axis by 45 degrees
     return pose
 
 
