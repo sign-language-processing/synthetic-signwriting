@@ -1,7 +1,18 @@
 import math
+from functools import lru_cache
+from pathlib import Path
+from pose_format.utils.normalization_3d import PoseNormalizer, PoseNormalizationInfo
 import numpy as np
-
+import random
+import numpy.ma as ma
 from scipy.spatial.transform import Rotation
+
+
+def randomize_hand_pose(pose: np.ndarray):
+    matrix_type = random.choice([0, 1])
+    shape = random.choice(range(261))
+    orientations = random.choice(range(6))
+    return pose[matrix_type][shape][orientations]
 
 
 def create_left_hand(pose: np.ndarray):
@@ -43,7 +54,14 @@ def scale_hand(pose: np.ndarray, suitable_hand: np.ndarray = None, size=200):
     return pose
 
 
-def prorate_hand(pose: np.ndarray, suitable_hand: np.ndarray, reflection=False):
+def reposition_hand(pose: np.ndarray, suitable_hand: np.ndarray):
+    pose_center_point = pose[0]  # Wrist
+    suitable_hand_center_point = suitable_hand[0]  # Wrist of suitable hand
+    pose += suitable_hand_center_point - pose_center_point  # move to Wrist of the suitable hand
+    return pose
+
+
+def proportionate_hand(pose: np.ndarray, suitable_hand: np.ndarray, reflection=False):
     assert pose.shape == (21, 3) and suitable_hand.shape == (21, 3)
     assert not np.all(pose == 0) and not np.all(suitable_hand == 0)
 
@@ -53,12 +71,24 @@ def prorate_hand(pose: np.ndarray, suitable_hand: np.ndarray, reflection=False):
         pose = create_left_hand(pose)
 
     # Scale pose such that BASE-M_CMC is of size of the suitable hand
-    pose = scale_hand(pose, suitable_hand)
+    pose = reposition_hand(pose, suitable_hand)
 
     return pose
 
 
-def read_npy_file(file_path):
+def normalize_hand(normalizer: PoseNormalizer, pose: np.ndarray):
+    return normalizer(ma.masked_array([[pose]]))[0][0]
+
+
+def hands_normalization():
+    plane = PoseNormalizationInfo(0, 17, 5)  # wrist, middle CMC, thumb CMC
+    line = PoseNormalizationInfo(0, 9)  # wrist, middle finger CBC
+    return PoseNormalizer(plane, line, 95)
+
+
+@lru_cache()
+def load_hands():
+    file_path = Path(__file__).parent.parent / "data" / "hands.npy"
     try:
         data = np.load(file_path)
         return data

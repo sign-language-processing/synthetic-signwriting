@@ -7,14 +7,8 @@ authors = [
 ]
 readme = "README.md"
 dependencies = [
-    "pose-format",
-    "signwriting @ git+https://github.com/sign-language-processing/signwriting",
 ]
 
-dev = [
-    "pytest",
-    "pylint"
-]
 
 [tool.yapf]
 based_on_style = "google"
@@ -30,7 +24,10 @@ disable = [
 
 [tool.setuptools]
 packages = [
-    "synthetic_signwriting"
+    "synthetic_signwriting",
+    "synthetic_signwriting.data",
+    "synthetic_signwriting.faces",
+    "synthetic_signwriting.hands",
 ]
 
 [tool.pytest.ini_options]

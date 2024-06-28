@@ -1,6 +1,10 @@
 import math
 import pickle
+from functools import lru_cache
+from pathlib import Path
+from pose_format.utils.normalization_3d import PoseNormalizer, PoseNormalizationInfo
 import numpy as np
+import numpy.ma as ma
 from scipy.spatial.transform import Rotation
 
 
@@ -17,18 +21,10 @@ def rotate_face(pose: np.ndarray, angle: float):
     return np.dot(pose, rotation.as_matrix())
 
 
-def scale_face(pose: np.ndarray, suitable_face: np.ndarray = None, size=200):
-    point1 = pose[4]  # Nose
-    point2 = pose[6]  # Middle eyebrows
-    current_size = np.sqrt(np.power(point2 - point1, 2).sum())
-
-    if suitable_face is not None:
-        point1 = suitable_face[4]  # Nose of suitable hand
-        point2 = suitable_face[6]  # Middle eyebrows of suitable hand
-        size = np.sqrt(np.power(point2 - point1, 2).sum())
-
-    pose *= size / current_size
-    pose -= pose[4] - suitable_face[4]  # move to Nose of the suitable hand
+def reposition_face(pose: np.ndarray, suitable_face: np.ndarray):
+    pose_center_point = pose[4]  # Nose
+    suitable_face_center_point = suitable_face[4]  # Nose of suitable hand
+    pose += suitable_face_center_point - pose_center_point  # move to Nose of the suitable hand
     return pose
 
 
@@ -43,22 +39,34 @@ def normalized_face(pose: np.ndarray):
     return pose
 
 
-def prorate_face(pose: np.ndarray, suitable_face: np.ndarray):
+def proportionate_face(pose: np.ndarray, suitable_face: np.ndarray):
     assert pose.shape == (468, 3) and suitable_face.shape == (468, 3)
     assert not np.all(pose == 0) and not np.all(suitable_face == 0)
-    pose = normalized_face(pose)
 
-    # Scale pose such that BASE-M_CMC is of size of the suitable face
-    pose = scale_face(pose, suitable_face)
+    # reposition face to the center of the suitable face
+    pose = reposition_face(pose, suitable_face)
 
     return pose
 
 
-def read_pkl_file(file_path):
+def normalize_face(normalizer: PoseNormalizer, pose: np.ndarray):
+    pose = normalizer(ma.masked_array([[pose]]))[0][0]
+    return pose
+
+
+def face_normalization():
+    plane = PoseNormalizationInfo(4, 362, 133)  # Nose, Right eye inner, Left eye inner
+    line = PoseNormalizationInfo(4, 6)  # Nose, Middle eyebrows
+    return PoseNormalizer(plane, line, 45)
+
+
+@lru_cache()
+def load_faces():
+    file_path = Path(__file__).parent.parent / "data" / "faces.pkl"
     try:
         with open(file_path, "rb") as file:
             data = pickle.load(file)
         return data
-    except Exception as exp:    # pylint: disable=broad-except
+    except Exception as exp:  # pylint: disable=broad-except
         print(exp)
         return None
