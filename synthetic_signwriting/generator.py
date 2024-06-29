@@ -62,9 +62,6 @@ class SyntheticSignWritingGenerator:
 
         # TODO: if our assumption is correct, and the hand is facing out
         symbol += 0x20
-        # TODO: redo the visualizer algorithm to determine the correct hand orientation
-        if is_right_hand:
-            hand = hand * np.array([-1, 1, 1])
 
         # 33% chance to face hand inwards
         if hand_orientation is None:
@@ -84,6 +81,10 @@ class SyntheticSignWritingGenerator:
         if hand_plane > 0.5:
             hand = Rotation.from_euler("x", -90, degrees=True).apply(hand)
             symbol += 0x30
+
+        # Mirror right hand
+        if is_right_hand:
+            hand = hand * np.array([-1, 1, 1])
 
         return hand, symbol
 
@@ -208,6 +209,7 @@ class SyntheticSignWritingGenerator:
                                  left_hand_signwriting=None,
                                  right_hand=relaxed_right_hand,
                                  right_hand_signwriting=None)
+        last_keyframe = self.keyframes[0]
         # keyframes = self.keyframes + [last_keyframe]
         keyframes = self.keyframes + [last_keyframe]
         for segment, keyframe in zip(segments, keyframes):
