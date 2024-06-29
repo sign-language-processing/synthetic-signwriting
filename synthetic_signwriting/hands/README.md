@@ -11,4 +11,4 @@ Then, in real time, we rotate the 3D pose to the desired angle.
 wget https://github.com/sign-language-processing/3d-hands-benchmark/raw/master/benchmark/systems/mediapipe/v0.10.3.npy
 ```
 
-![Hands](hands.gif)
+![Hands](hand.gif)
