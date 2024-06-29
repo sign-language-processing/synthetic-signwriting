@@ -60,7 +60,7 @@ class SyntheticSignWritingGenerator:
         hand = hands[hand_index]
         symbol = get_hand_signwriting_symbol(hand_index)
 
-        # TODO: if our assumption is correct, and the hand is facing out
+        # By default, the hand is facing out, and parallel to the wall plane
         symbol += 0x20
 
         # 33% chance to face hand inwards
