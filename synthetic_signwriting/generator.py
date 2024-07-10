@@ -231,6 +231,19 @@ class SyntheticSignWritingGenerator:
         pose.focus()
         return pose
 
+    def render_fsw(self):
+        fsw = ""
+        # generate FSW for each keyframe
+        for keyframe in self.keyframes:
+
+            # extract the signwriting symbol
+            generated_right_hand = str(hex(keyframe.right_hand_signwriting))[2:]
+            generated_left_hand = str(hex(keyframe.left_hand_signwriting))[2:]
+            generated_face = '2ff00'     # TODO adding synthetic face option
+
+            fsw += f"M538x552S{generated_face}482x483S{generated_right_hand}522x522S{generated_left_hand}455x521"
+        return fsw
+
 
 if __name__ == "__main__":
     synthetic = SyntheticSignWritingGenerator()
