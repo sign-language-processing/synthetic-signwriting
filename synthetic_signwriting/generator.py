@@ -85,6 +85,8 @@ class SyntheticSignWritingGenerator:
         # Mirror right hand
         if is_right_hand:
             hand = hand * np.array([-1, 1, 1])
+        else:
+            symbol += 0x8
 
         return hand, symbol
 
@@ -240,9 +242,6 @@ class SyntheticSignWritingGenerator:
             generated_right_hand = str(hex(keyframe.right_hand_signwriting))[2:]
             generated_left_hand = str(hex(keyframe.left_hand_signwriting))[2:]
             generated_face = '2ff00'     # TODO adding synthetic face option
-
-            # adding 8 offset to the left hand
-            generated_left_hand = str(hex(int(generated_left_hand, 16) + 0x8))[2:]
 
             fsw += f"M538x552S{generated_face}482x483S{generated_right_hand}522x522S{generated_left_hand}455x521"
         return fsw
