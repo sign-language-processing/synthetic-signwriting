@@ -85,6 +85,8 @@ class SyntheticSignWritingGenerator:
         # Mirror right hand
         if is_right_hand:
             hand = hand * np.array([-1, 1, 1])
+        else:
+            symbol += 0x8
 
         return hand, symbol
 
